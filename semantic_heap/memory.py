@@ -70,7 +70,10 @@ class SemanticHeapMemory:
         if tokens:
             fts_query = " OR ".join(tokens)
         else:
-            safe_terms = [part for part in query.lower().replace("-", " ").replace("/", " ").replace(".", " ").split() if part]
+            from .utils import normalize_token
+
+            safe_terms = [normalize_token(part) for part in query.split()]
+            safe_terms = [part for part in safe_terms if part]
             fts_query = " OR ".join(safe_terms) if safe_terms else query
         candidates = self.storage.candidate_ideas(fts_query, limit=max(50, limit * 5))
 
