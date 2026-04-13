@@ -67,7 +67,11 @@ class SemanticHeapMemory:
         query_anchors = extract_anchors(query)
 
         tokens = [t.anchor_norm for t in query_anchors if t.anchor_norm]
-        fts_query = " OR ".join(tokens) if tokens else query
+        if tokens:
+            fts_query = " OR ".join(tokens)
+        else:
+            safe_terms = [part for part in query.lower().replace("-", " ").replace("/", " ").replace(".", " ").split() if part]
+            fts_query = " OR ".join(safe_terms) if safe_terms else query
         candidates = self.storage.candidate_ideas(fts_query, limit=max(50, limit * 5))
 
         now = datetime.now(UTC)
