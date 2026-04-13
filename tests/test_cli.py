@@ -24,3 +24,19 @@ def test_cli_init_save_retrieve(tmp_path: Path):
     retrieve = run_cli(tmp_path, "retrieve", "--idea", "dinner plans", "--time", "now", "--json")
     assert retrieve.returncode == 0
     assert '"matches"' in retrieve.stdout
+
+
+def test_cli_save_with_source_text(tmp_path: Path):
+    save = run_cli(
+        tmp_path,
+        "save",
+        "--domain",
+        "world",
+        "--idea",
+        "Cancer survival improves in Europe",
+        "--source-text",
+        "Cancer survival increases in Europe, but international differences remain wide.",
+        "--json",
+    )
+    assert save.returncode == 0
+    assert '"source_text": "Cancer survival increases in Europe, but international differences remain wide."' in save.stdout

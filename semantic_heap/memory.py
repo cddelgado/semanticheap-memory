@@ -23,7 +23,7 @@ class SemanticHeapMemory:
         self.storage = SQLiteStorage(db_path)
         self.storage.init_schema()
 
-    def save(self, domain: str, idea: str) -> SaveResult:
+    def save(self, domain: str, idea: str, source_text: str | None = None) -> SaveResult:
         """Save a normalized idea into semantic memory."""
         if domain not in SUPPORTED_DOMAINS:
             raise InvalidDomainError(f"Unsupported domain '{domain}'. Allowed: {sorted(SUPPORTED_DOMAINS)}")
@@ -35,6 +35,7 @@ class SemanticHeapMemory:
         idea_id = self.storage.insert_idea(
             domain=domain,
             idea=idea,
+            source_text=source_text or idea,
             normalized_idea=normalized.lower(),
             created_at=now_iso(),
             strength=1.0,
@@ -55,6 +56,7 @@ class SemanticHeapMemory:
         return SaveResult(
             idea_id=idea_id,
             normalized_idea=normalized,
+            source_text=source_text or idea,
             anchors=anchors,
             semantic_paths=paths,
             linked_idea_ids=linked_ids,
@@ -106,6 +108,7 @@ class SemanticHeapMemory:
                 RetrieveMatch(
                     idea_id=row["id"],
                     idea=row["idea"],
+                    source_text=row["source_text"],
                     domain=row["domain"],
                     semantic_paths=self.storage.fetch_paths(row["id"]),
                     match_score=round(score, 6),

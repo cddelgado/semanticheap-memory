@@ -22,6 +22,7 @@ def build_parser() -> argparse.ArgumentParser:
     save = sub.add_parser("save")
     save.add_argument("--domain", required=True)
     save.add_argument("--idea", required=True)
+    save.add_argument("--source-text")
     save.add_argument("--json", action="store_true")
 
     retrieve = sub.add_parser("retrieve")
@@ -53,7 +54,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Initialized semantic heap database: {args.db}")
             return 0
         if args.command == "save":
-            result = memory.save(args.domain, args.idea)
+            result = memory.save(args.domain, args.idea, source_text=args.source_text)
             if args.json:
                 print(json.dumps(asdict(result), indent=2))
             else:
@@ -65,7 +66,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(json.dumps(asdict(result), indent=2))
             else:
                 for match in result.matches:
-                    print(f"[{match.match_score:.3f}] #{match.idea_id} {match.idea} :: {', '.join(match.semantic_paths)}")
+                    print(f"[{match.match_score:.3f}] #{match.idea_id} {match.idea} => {match.source_text} :: {', '.join(match.semantic_paths)}")
             return 0
         if args.command == "inspect":
             info = memory.inspect_idea(args.id)

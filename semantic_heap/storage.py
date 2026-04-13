@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS ideas (
     id INTEGER PRIMARY KEY,
     domain TEXT NOT NULL,
     idea TEXT NOT NULL,
+    source_text TEXT NOT NULL,
     normalized_idea TEXT NOT NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
@@ -91,6 +92,7 @@ class SQLiteStorage:
         *,
         domain: str,
         idea: str,
+        source_text: str,
         normalized_idea: str,
         created_at: str,
         strength: float,
@@ -98,10 +100,10 @@ class SQLiteStorage:
     ) -> int:
         cur = self.conn.execute(
             """
-            INSERT INTO ideas (domain, idea, normalized_idea, created_at, updated_at, strength, decay, is_stale)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+            INSERT INTO ideas (domain, idea, source_text, normalized_idea, created_at, updated_at, strength, decay, is_stale)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
             """,
-            (domain, idea, normalized_idea, created_at, created_at, strength, decay),
+            (domain, idea, source_text, normalized_idea, created_at, created_at, strength, decay),
         )
         self.conn.commit()
         return int(cur.lastrowid)
