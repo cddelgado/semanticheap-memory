@@ -23,7 +23,7 @@ class SemanticHeapMemory:
         self.storage = SQLiteStorage(db_path)
         self.storage.init_schema()
 
-    def save(self, domain: str, idea: str) -> SaveResult:
+    def save(self, domain: str, idea: str, source_text: str | None = None) -> SaveResult:
         """Save a normalized idea into semantic memory."""
         if domain not in SUPPORTED_DOMAINS:
             raise InvalidDomainError(f"Unsupported domain '{domain}'. Allowed: {sorted(SUPPORTED_DOMAINS)}")
@@ -35,6 +35,7 @@ class SemanticHeapMemory:
         idea_id = self.storage.insert_idea(
             domain=domain,
             idea=idea,
+            source_text=source_text or idea,
             normalized_idea=normalized.lower(),
             created_at=now_iso(),
             strength=1.0,
@@ -55,6 +56,7 @@ class SemanticHeapMemory:
         return SaveResult(
             idea_id=idea_id,
             normalized_idea=normalized,
+            source_text=source_text or idea,
             anchors=anchors,
             semantic_paths=paths,
             linked_idea_ids=linked_ids,
@@ -67,7 +69,14 @@ class SemanticHeapMemory:
         query_anchors = extract_anchors(query)
 
         tokens = [t.anchor_norm for t in query_anchors if t.anchor_norm]
-        fts_query = " OR ".join(tokens) if tokens else query
+        if tokens:
+            fts_query = " OR ".join(tokens)
+        else:
+            from .utils import normalize_token
+
+            safe_terms = [normalize_token(part) for part in query.split()]
+            safe_terms = [part for part in safe_terms if part]
+            fts_query = " OR ".join(safe_terms) if safe_terms else query
         candidates = self.storage.candidate_ideas(fts_query, limit=max(50, limit * 5))
 
         now = datetime.now(UTC)
@@ -99,6 +108,7 @@ class SemanticHeapMemory:
                 RetrieveMatch(
                     idea_id=row["id"],
                     idea=row["idea"],
+                    source_text=row["source_text"],
                     domain=row["domain"],
                     semantic_paths=self.storage.fetch_paths(row["id"]),
                     match_score=round(score, 6),

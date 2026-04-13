@@ -20,6 +20,7 @@ class SaveResult:
 
     idea_id: int
     normalized_idea: str
+    source_text: str
     anchors: list[Anchor] = field(default_factory=list)
     semantic_paths: list[str] = field(default_factory=list)
     linked_idea_ids: list[int] = field(default_factory=list)
@@ -31,6 +32,7 @@ class RetrieveMatch:
 
     idea_id: int
     idea: str
+    source_text: str
     domain: str
     semantic_paths: list[str]
     match_score: float
